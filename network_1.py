@@ -145,6 +145,7 @@ class Router:
         print('%s: Initialized routing table' % self)
         self.print_routes()
     
+    
         
     ## Print routing table
     def print_routes(self):
