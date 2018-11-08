@@ -1,6 +1,6 @@
 import queue
 import threading
-import pprint
+import ast
 
 ## wrapper class for a queue of packets
 class Interface:
@@ -141,17 +141,26 @@ class Router:
         #save neighbors and interfeces on which we connect to them
         self.cost_D = cost_D    # {neighbor: {interface: cost}}
         #TODO: set up the routing table for connected hosts
-        self.rt_tbl_D = {}      # {destination: {router: cost}}
+        self.rt_tbl_D = self.create_table()# {destination: {router: cost}}
         print('%s: Initialized routing table' % self)
         self.print_routes()
     
-    
-        
+    def create_table(self):
+        cost_table = self.cost_D
+        table = {self.name:{self.name : 0}}
+        # {i: [t, n] for t, nd in d.items() for i, n in nd.items()}
+        for key, value in cost_table.items():
+            for k, v in value.items():
+                table[self.name].update({key:v})
+        return table
+
     ## Print routing table
     def print_routes(self):
+        rows = len(self.rt_tbl_D.items())
+        print(rows)
         #TODO: print the routes as a two dimensional table
-        print(self.cost_D)
-        # print.pformat(self.rt_tbl_D)
+        # print(self.cost_D)
+        print(self.rt_tbl_D)
 
 
     ## called when printing the object
@@ -198,7 +207,7 @@ class Router:
     def send_routes(self, i):
         # TODO: Send out a routing table update
         #create a routing table update packet
-        p = NetworkPacket(0, 'control', 'DUMMY_ROUTING_TABLE')
+        p = NetworkPacket(0, 'control', str(self.rt_tbl_D))
         try:
             print('%s: sending routing update "%s" from interface %d' % (self, p, i))
             self.intf_L[i].put(p.to_byte_S(), 'out', True)
@@ -210,8 +219,21 @@ class Router:
     ## forward the packet according to the routing table
     #  @param p Packet containing routing information
     def update_routes(self, p, i):
+        own_table = self.rt_tbl_D[self.name]
+        table = ast.literal_eval(p.data_S)
+        for key, value in table.items():
+            router = key
+            added_cost = own_table[router]
+            for k,v in value.items():
+            # print("Own table" + str(own_table))
+                if k not in own_table:
+                # new_cost = 
+                    self.rt_tbl_D[self.name].update({k:(v+added_cost)})
+                else:
+                    pass
         #TODO: add logic to update the routing tables and
         # possibly send out routing updates
+        self.print_routes()
         print('%s: Received routing update %s from interface %d' % (self, p, i))
 
                 
