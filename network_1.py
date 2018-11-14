@@ -147,17 +147,18 @@ class Router:
     
     def create_table(self):
         cost_table = self.cost_D
-        table = {self.name:{self.name : 0}}
+        table = {self.name:{self.name:0}}
         # {i: [t, n] for t, nd in d.items() for i, n in nd.items()}
         for key, value in cost_table.items():
+            table.update({key:{}})
             for k, v in value.items():
-                table[self.name].update({key:v})
+                table[key].update({self.name:v})
         return table
 
     ## Print routing table
     def print_routes(self):
-        rows = len(self.rt_tbl_D.items())
-        print(rows)
+        # rows = len(self.rt_tbl_D.items())
+        # print(rows)
         #TODO: print the routes as a two dimensional table
         # print(self.cost_D)
         print(self.rt_tbl_D)
@@ -219,20 +220,46 @@ class Router:
     ## forward the packet according to the routing table
     #  @param p Packet containing routing information
     def update_routes(self, p, i):
-        own_table = self.rt_tbl_D[self.name]
+        #dx(y) = minv{c(x,v) + dv(y)} Bellman-Ford Equation
         table = ast.literal_eval(p.data_S)
         for key, value in table.items():
-            router = key
-            added_cost = own_table[router]
-            for k,v in value.items():
-            # print("Own table" + str(own_table))
-                if k not in own_table:
-                # new_cost = 
-                    self.rt_tbl_D[self.name].update({k:(v+added_cost)})
-                else:
-                    pass
+            dest = key
+            for a,b in value.items():
+                router, dist = a,b
+            if dest not in self.rt_tbl_D:
+                get_cost = self.rt_tbl_D[router]
+                for c,d in get_cost.items():
+                    added_cost = int(d)
+
+                self.rt_tbl_D.update({dest:{router:(dist+added_cost)}})
+            elif dest == self.name or dest == router:
+                pass
+            else:
+                for k,v in self.rt_tbl_D[dest].items():
+                    if v > int(dist):
+                        self.rt_tbl_D[dest].update({router:dist}) 
+        #     router = key
+        #     added_cost = own_table[router]
+        #     for k,v in value.items():
+        #     # print("Own table" + str(own_table))
+        #         if k not in own_table:
+        #             self.rt_tbl_D[self.name].update({k:(v+added_cost)})
+        #         else:
+        #             pass
+        # other_router = next(iter(table))
+        # other_table = table[other_router]
+        # self.rt_tbl_D.update({other_router:other_table})
+        # for key, value in self.rt_tbl_D.items():
+        #     router = key
+        #     added_cost = other_table[router]
+        #     for k,v in value.items():
+        #         if k not in other_table:
+        #             self.rt_tbl_D[other_router].update({k:(v+added_cost)})
+        #         else:
+        #             pass
         #TODO: add logic to update the routing tables and
         # possibly send out routing updates
+        self.send_routes(0)
         self.print_routes()
         print('%s: Received routing update %s from interface %d' % (self, p, i))
 
