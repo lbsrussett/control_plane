@@ -1,4 +1,4 @@
-import network_1 as network
+import network_2 as network
 import link
 import threading
 from time import sleep
@@ -62,7 +62,8 @@ if __name__ == '__main__':
     #send packet from host 1 to host 2
     host_1.udt_send('H2', '0', 'MESSAGE_FROM_H1')
     sleep(simulation_time)
-    
+    host_2.udt_send('H1', '0', 'RETURN_FROM_H2')
+    sleep(simulation_time)
     
     #join all threads
     for o in object_L:

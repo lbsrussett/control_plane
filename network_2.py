@@ -152,6 +152,7 @@ class Router:
     def create_table(self):
         cost_table = self.cost_D
         table = {self.name:{self.name:0}}
+        # {i: [t, n] for t, nd in d.items() for i, n in nd.items()}
         for key, value in cost_table.items():
             table.update({key:{}})
             for k, v in value.items():
@@ -198,9 +199,35 @@ class Router:
             # TODO: Here you will need to implement a lookup into the 
             # forwarding table to find the appropriate outgoing interface
             # for now we assume the outgoing interface is 1
-            self.intf_L[1].put(p.to_byte_S(), 'out', True)
-            print('%s: forwarding packet "%s" from interface %d to %d' % \
-                (self, p, i, 1))
+            # print("Cost table " + str(self.cost_D))
+            dest = p.dst
+            if dest not in self.cost_D:
+                route = self.rt_tbl_D.get(dest)
+                for a,b in route.items():
+                    router = a
+                print("Router is " + str(router))
+                for intf, cost in self.cost_D[router].items():
+                    interface = intf
+                    print("Interface " + str(interface))
+            # if dest in self.rt_tbl_D:
+            #     print("Dest is " + str(dest))
+            #     for key,value in self.rt_tbl_D[dest].items():
+            #         router = self.rt_tbl_D[key]
+            #         # print("Router is " + str(router))
+            #         for k,v in router.items():
+            #             if k in self.cost_D:
+
+            #                 print("Cost table " + str(k))
+                    # print("Router is " + str(router))
+                self.intf_L[interface].put(p.to_byte_S(), 'out', True)
+                print('%s: forwarding packet "%s" from interface %d to %d' % \
+                    (self, p, i, 1))
+            else:
+                for intf, cost in self.cost_D[dest].items():
+                    interface = intf
+                    self.intf_L[interface].put(p.to_byte_S(), 'out', True)
+                    print('%s: forwarding packet "%s" from interface %d to %d' % \
+                        (self, p, i, 1))
         except queue.Full:
             print('%s: packet "%s" lost on interface %d' % (self, p, i))
             pass
@@ -226,7 +253,6 @@ class Router:
         #dx(y) = minv{c(x,v) + dv(y)} Bellman-Ford Equation
         table = ast.literal_eval(p.data_S)
         if p.change_S == '1':
-            print("There is a change in the routing tables.\n")
             for key, value in table.items():
                 dest = key
                 for a,b in value.items():
@@ -235,18 +261,14 @@ class Router:
                     get_cost = self.rt_tbl_D[router]
                     for c,d in get_cost.items():
                         added_cost = int(d)
-                        print("The additional cost to get to destination {} from neighbor {} is {}.\n".format(dest, router, d))
+
                     self.rt_tbl_D.update({dest:{router:(dist+added_cost)}})
                 elif dest == self.name or dest == router:
                     pass
                 else:
                     for k,v in self.rt_tbl_D[dest].items():
-                        print("The current cost to {} is {}.\n".format(dest, v))
-                        print("The alternate cost to {} is {}.\n".format(dest, dist))
                         if v > int(dist):
-                            print("Updating the cost to {} to {}.\n".format(dest, dist))
                             self.rt_tbl_D[dest].update({router:dist})
-            print("{} has updated its routing table.\n".format(self.name))
             p.change_S = '0'                 
             self.send_routes(0)
         else:
