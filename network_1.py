@@ -236,6 +236,8 @@ class Router:
                     for c,d in get_cost.items():
                         added_cost = int(d)
                         print("The additional cost to get to destination {} from neighbor {} is {}.\n".format(dest, router, d))
+                        print("The result of the Bellman-Ford equation: ") 
+                        print("dx(y) = minv[c(x,v) + dv(y)] is {} = minv({} + {}).\n".format(dist+added_cost, dist, added_cost))
                     self.rt_tbl_D.update({dest:{router:(dist+added_cost)}})
                 elif dest == self.name or dest == router:
                     pass
@@ -243,9 +245,11 @@ class Router:
                     for k,v in self.rt_tbl_D[dest].items():
                         print("The current cost to {} is {}.\n".format(dest, v))
                         print("The alternate cost to {} is {}.\n".format(dest, dist))
-                        if v > int(dist):
-                            print("Updating the cost to {} to {}.\n".format(dest, dist))
-                            self.rt_tbl_D[dest].update({router:dist})
+                        distance = min(v, int(dist))
+                        print("The result of the Bellman-Ford equation: ") 
+                        print("dx(y) = minv[c(x,v) + dv(y)] is {} = minv({},{}).\n".format(distance, dist, v))
+                        print("Updating the cost to {} to {}.\n".format(dest, distance))
+                        self.rt_tbl_D[dest].update({router:distance})
             print("{} has updated its routing table.\n".format(self.name))
             p.change_S = '0'                 
             self.send_routes(0)
