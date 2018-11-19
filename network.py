@@ -141,7 +141,7 @@ class Router:
         #save neighbors and interfeces on which we connect to them
         self.cost_D = cost_D    # {neighbor: {interface: cost}}
         #TODO: set up the routing table for connected hosts
-        self.rt_tbl_D = {}#{"H2":{"RA":4},"H3":{"RA":2}}      # {destination: {router: cost}}   #{router:{dest:cost}}
+        self.rt_tbl_D = {"H2":{"RA":4},"H3":{"RA":2}}      # {destination: {router: cost}}   #{router:{dest:cost}}
         print('%s: Initialized routing table' % self)
         self.print_routes()
 
@@ -161,9 +161,10 @@ class Router:
             for i in key:
                 key_name+=str.rjust(i,4)+"|"
                 header+="====="
-            print(header)   #correct length dashed line
-            print(key_name)  #list of all routers/destinations
-            print(header)
+            full=header+"\n"+key_name+"\n"+header+"\n"
+            #print(header)   #correct length dashed line
+            #print(key_name)  #list of all routers/destinations
+            #print(header)
             for i in routers:
                 node_str="|"
                 for j in key:
@@ -171,8 +172,9 @@ class Router:
                         node_str+=str.rjust(str(self.rt_tbl_D[j][i]),4)+"|"   #distance from router to destination
                     except:
                         node_str+="none|"    #no route exists yet
-                print("|"+str.ljust(i,4)+node_str)
-                print(header)
+                full+="|"+str.ljust(i,4)+node_str+"\n"
+                full+=header+"\n"
+            print(full)
             #print(self.rt_tbl_D)
 
 
